@@ -8,13 +8,18 @@
 #include<SPI.h>
 #include<Ethernet.h>
 
+#include<Servo.h>
+
 //ids
-#define INT_ARD_ID  0XA0
+#define INT_ARD_IDu
 #define INT_COOLING 0XA1
 #define INT_E_BRAKE 0XA2
 #define INT_LIGHTS  0XA3
 #define INT_SIREN   0XA4
 #define INT_TEMP    0XA5
+
+#define ON   0X01
+#define OFF  0X10
 
 //utils
 #define GET  0XF0
@@ -31,12 +36,27 @@ IPAddress ip(120,10,10,1);
 EthernetServer server(23);
 EthernetClient client;
 
+Servo ebrake;
+#define ebrake_on_deg  71
+#define ebrake_off_deg 90
+
+void ebrake_on(){
+  Serial.println("Turning EBrake on...");
+  ebrake.write(ebrake_on_deg);
+}
+
+void ebrake_off(){
+  Serial.println("Turning EBrake off...");
+  ebrake.write(ebrake_off_deg);
+}
+
 void setup() {
   //set up ethernet connection
   Ethernet.begin(mac, ip);
   //begin listening for connections from the pi
   server.begin();
   Serial.begin(9600);
+  ebrake.attach(6);
 }
 
 void loop() {
@@ -86,8 +106,17 @@ void loop() {
             Serial.println(value & 0xff, HEX);
 
             //pass to the actuation function
+            if((servoID & 0xff) == INT_E_BRAKE){
+              if((value & 0xff) == ON){
+                ebrake_on();
+              }
+              else if((value & 0xff) == OFF){
+                ebrake_off();
+              }
+            }
 
             //send ack if everything went ok
+            Serial.println("Writeback");
             char ackMess[] = {MASK, 0X03, servoID, OK, '\0'};
             client.write(ackMess);
             //client.stop();
