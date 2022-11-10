@@ -11,7 +11,7 @@
 #include<Servo.h>
 
 //ids
-#define INT_ARD_IDu
+#define INT_ARD_ID  0xA0
 #define INT_COOLING 0XA1
 #define INT_E_BRAKE 0XA2
 #define INT_LIGHTS  0XA3
